@@ -1,4 +1,4 @@
-# `solid_craft_strata_engineer`
+# `solid_craft_strata_hermes_engineer`
 
 **Turning a Local Dual-Tesla V100 AI Server + Hermes Agent + SolidCraft v0.49+ into a Code-First Mechanical CAD & FEA Engineering Engine — for Almost Zero Cloud Token Spend.**
 
@@ -8,7 +8,7 @@ This repository documents the full engineering journey, forensic telemetry, dead
 
 ## Executive Results (Before vs. After)
 
-| Metric | Initial Setup (SolidCraft ACP + Stock Config) | Tuned `solid_craft_strata_engineer` Stack |
+| Metric | Initial Setup (SolidCraft ACP + Stock Config) | Tuned `solid_craft_strata_hermes_engineer` Stack |
 |---|---|---|
 | **Deferred `tool_call` failure rate** | **86.7%** (137/158 failed) | **0.0%** (`tools.tool_search.enabled: "off"`) |
 | **Batched CAD command rollback loss** | **45.0%** (1,700/3,777 lost; 50.6% fail at >12 cmds) | **~0%** (schema-validated Python SDK across all 903 v0.49.1 commands) |
@@ -47,7 +47,7 @@ This repository documents the full engineering journey, forensic telemetry, dead
 ## Repository Structure
 
 ```text
-solid_craft_strata_engineer/
+solid_craft_strata_hermes_engineer/
 ├── README.md                              # Overview, benchmarks, architecture, quickstart
 ├── docs/
 │   └── TRIALS_AND_LEARNINGS.md            # Complete forensic log of every trial, failure & fix
