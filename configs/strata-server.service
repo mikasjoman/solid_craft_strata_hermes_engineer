@@ -1,0 +1,37 @@
+# /etc/systemd/system/strata-server.service (Dual Tesla V100 32GB PCIe, sm_70, CUDA 12)
+[Unit]
+Description=Strata AI Server (Dual Tesla V100 64GB)
+After=network-online.target v100-thermal-guard.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=<USER>
+WorkingDirectory=/home/<USER>/strata
+ExecStart=/usr/bin/numactl --cpunodebind=1 --preferred=1 /home/<USER>/strata/.venv/bin/python /home/<USER>/strata/serve/server.py --engine strata --config /home/<USER>/strata/strata-dual-v100.json --port 8086
+Restart=always
+RestartSec=5
+StandardOutput=journal
+StandardError=journal
+LimitNOFILE=65536
+
+# Tuned Volta (sm_70) environment flags
+Environment="CUDA_VISIBLE_DEVICES=0,1"
+Environment="STRATA_SM70_TABLE=1"
+Environment="STRATA_PF_WMMA=1"
+Environment="STRATA_PF_WMMA2=1"
+Environment="STRATA_HC_Q8=1"
+Environment="STRATA_MTP_STAGE0=1"
+Environment="STRATA_ARGMAX_ROWS_SM70=1"
+Environment="STRATA_GR_NORM_FAST=1"
+Environment="STRATA_GDN_REC_WARP=2"
+Environment="STRATA_PREFILL_CHUNK=3072"
+Environment="STRATA_CUDA_MALLOC_ASYNC=1"
+Environment="STRATA_SM70_GEMM_SPLIT=1"
+Environment="STRATA_BATCH_ATTN_ROWS=1"
+Environment="STRATA_BATCH_GDN_GROUPS=1"
+# Optional in Strata v0.2.22+ (engine 0.1.69+): +5.5% to +9% decode on 2-card non-NVLink splits
+# Environment="STRATA_SPLIT_LEND_RESERVE=0"
+
+[Install]
+WantedBy=multi-user.target
