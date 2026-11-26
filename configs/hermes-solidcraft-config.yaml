@@ -1,5 +1,6 @@
 # Sanitized Hermes Agent profile config for SolidCraft CAD (~/.hermes/profiles/solidcraft/config.yaml)
-# Replace <STRATA_HOST> with your Strata server IP/hostname (e.g. 192.168.1.240).
+# Preset A: Local-First (Strata builds 95%+ at $0, OpenAI gpt-6.1-sol does visual QA & 2-strike deadlocks).
+# Replace <STRATA_HOST> with your Strata server IP/hostname (e.g. 192.168.1.x).
 
 model:
   default: qwen3.8-flash-next-ud-q4_k_xl

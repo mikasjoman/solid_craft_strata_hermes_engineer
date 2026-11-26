@@ -70,22 +70,17 @@ solid_craft_strata_hermes_engineer/
 
 ## Quickstart
 
-1. **Install the 4 Python tools** into `~/.hermes/profiles/solidcraft/tools/`:
+1. **Clone and run the one-line installer** (add `--with-fea` to also install the isolated Gmsh + scikit-fem FEA environment):
    ```bash
-   mkdir -p ~/.hermes/profiles/solidcraft/tools
-   cp tools/*.py ~/.hermes/profiles/solidcraft/tools/
+   git clone https://github.com/mikasjoman/solid_craft_strata_hermes_engineer.git
+   cd solid_craft_strata_hermes_engineer
+   chmod +x install.sh && ./install.sh --with-fea
    ```
-2. **Optional — Create the isolated FEA venv** (`gmsh` + `scikit-fem` + `scipy` + `matplotlib` + `pillow`):
-   ```bash
-   python3 -m venv ~/.hermes/profiles/solidcraft/fea-venv
-   ~/.hermes/profiles/solidcraft/fea-venv/bin/pip install gmsh scikit-fem scipy meshio trimesh matplotlib pillow
-   ```
-3. **Install the 2 generic CAD skills** into `~/.hermes/profiles/solidcraft/skills/` (and `~/.hermes/skills/` if you also use `default`):
-   ```bash
-   cp -r skills/* ~/.hermes/profiles/solidcraft/skills/
-   ```
-4. **Apply the sanitized configs** (`configs/SOUL.md`, `configs/hermes-solidcraft-config.yaml`, `configs/strata-dual-v100.json`, `configs/strata-server.service`), replacing `<STRATA_HOST>` and `<USER>` with your values.
-5. **Run in Hermes Desktop** on the dedicated `solidcraft` profile — local renders appear inline in chat via `MEDIA:/absolute/path/to/image.png`, and each passing stage opens live in SolidCraft via MCP `open`.
+2. **Choose your hybrid Hermes profile config** and merge into `~/.hermes/profiles/solidcraft/config.yaml` (replacing `<STRATA_HOST>` and ensuring `OPENAI_API_KEY` is set):
+   - [`configs/hermes-solidcraft-config.yaml`](configs/hermes-solidcraft-config.yaml) — **Local-first** (`~$0.05–$0.50`/assembly: Strata builds 95%+ at `$0`, OpenAI `gpt-6.1-sol` does visual QA & 2-strike deadlocks).
+   - [`configs/hermes-manager-worker-config.yaml`](configs/hermes-manager-worker-config.yaml) — **Manager-Worker** (`~$0.50–$1.20`/assembly, ~10× faster wall-clock: OpenAI `gpt-6.1-sol` orchestrates & reviews, local Strata workers execute all CAD coding, oracle loops & FEA at `$0`).
+3. **Optional — Server-side Dual-V100 Strata configs:** See [`configs/strata-dual-v100.json`](configs/strata-dual-v100.json) and [`configs/strata-server.service`](configs/strata-server.service) (Volta `sm_70` CUDA 12 flags + `STRATA_SPLIT_LEND_RESERVE=0`).
+4. **Run in Hermes Desktop** on the dedicated `solidcraft` profile (bottom-left sidebar) — local renders appear inline in chat via `MEDIA:/absolute/path/to/image.png`, and each passing stage opens live in SolidCraft via MCP `open`.
 
 ---
 

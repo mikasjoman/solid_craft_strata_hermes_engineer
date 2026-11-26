@@ -6,8 +6,8 @@ description: Generic code-first SolidCraft v0.49+ mechanical CAD workflow using 
 # SolidCraft Superhero Toolkit (`~/.hermes/profiles/solidcraft/tools/`)
 
 ```python
-import sys
-sys.path.insert(0, "~/.hermes/profiles/solidcraft/tools")
+import os, sys
+sys.path.insert(0, os.path.expanduser("~/.hermes/profiles/solidcraft/tools"))
 from solidcraft_builder import SolidCraftBuilder
 from solidcraft_oracle import verify_design
 from blueprint_2d import render_blueprint
