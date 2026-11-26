@@ -68,15 +68,23 @@ solid_craft_strata_hermes_engineer/
 
 ---
 
+## Prerequisites
+- **Hermes Agent / Hermes Desktop** installed (`~/.hermes/`).
+- **SolidCraft v0.49+** (`solidcraft-cli` in `PATH` or `~/.local/bin/solidcraft-cli`) with **Preferences → Assistant → control channel enabled on `127.0.0.1:27878`**.
+- **Python 3.10+ with `pillow`** (`pip install --user pillow`) for `blueprint_2d.py` and `solidcraft_oracle.py`.
+- **Strata AI Server (`v0.2.22 / engine 0.1.69+`)** running `Qwen3.8-Flash-Next (UD-Q4_K_XL)` on your local GPU server.
+  - *Dual Tesla V100 (`sm_70`, CUDA 12) build tip:* Compile with `CMAKE_CUDA_ARCHITECTURES=70`, `CMAKE_CUDA_HOST_COMPILER=/usr/bin/g++-13`, `CMAKE_BUILD_TYPE=Release`, and build `--target strata` directly (avoids GCC 13 AMX header errors in the unrelated `inkling2` target).
+- **`OPENAI_API_KEY`** in `~/.hermes/.env` (used only for low-cost `gpt-6.1-sol` visual QA / optional Manager-Worker orchestration).
+
 ## Quickstart
 
-1. **Clone and run the one-line installer** (add `--with-fea` to also install the isolated Gmsh + scikit-fem FEA environment):
+1. **Clone and run the one-line installer** (add `--with-fea` for Gmsh + scikit-fem FEA; add `--manager-worker` to default starter config to Preset B):
    ```bash
    git clone https://github.com/mikasjoman/solid_craft_strata_hermes_engineer.git
    cd solid_craft_strata_hermes_engineer
    chmod +x install.sh && ./install.sh --with-fea
    ```
-2. **Choose your hybrid Hermes profile config** and merge into `~/.hermes/profiles/solidcraft/config.yaml` (replacing `<STRATA_HOST>` and ensuring `OPENAI_API_KEY` is set):
+2. **Edit `~/.hermes/profiles/solidcraft/config.yaml`** (replace `<STRATA_HOST>` with your Strata server IP/hostname). Two ready-to-use presets are included:
    - [`configs/hermes-solidcraft-config.yaml`](configs/hermes-solidcraft-config.yaml) — **Local-first** (`~$0.05–$0.50`/assembly: Strata builds 95%+ at `$0`, OpenAI `gpt-6.1-sol` does visual QA & 2-strike deadlocks).
    - [`configs/hermes-manager-worker-config.yaml`](configs/hermes-manager-worker-config.yaml) — **Manager-Worker** (`~$0.50–$1.20`/assembly, ~10× faster wall-clock: OpenAI `gpt-6.1-sol` orchestrates & reviews, local Strata workers execute all CAD coding, oracle loops & FEA at `$0`).
 3. **Optional — Server-side Dual-V100 Strata configs:** See [`configs/strata-dual-v100.json`](configs/strata-dual-v100.json) and [`configs/strata-server.service`](configs/strata-server.service) (Volta `sm_70` CUDA 12 flags + `STRATA_SPLIT_LEND_RESERVE=0`).
