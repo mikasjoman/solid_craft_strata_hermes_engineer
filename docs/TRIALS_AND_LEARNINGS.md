@@ -108,3 +108,24 @@ Upgrading Strata and rebuilding `strata` for CUDA 12 `sm_70` (`g++-13`, Release)
 
 - **Local-First (`~$0.05–$0.50` / complex assembly):** Local Strata `0.1.69` drives 95%+ of all tokens (`$0`), with `gpt-6.1-sol` used strictly for milestone visual QA (`vision_analyze`) and 2-strike deadlocks.
 - **Manager-Worker (`~$0.50–$1.20` / complex assembly, ~10× faster wall-clock):** Frontier `gpt-6.1-sol` acts as top-level **Manager** (architecture, `COORDINATE_TABLE.json`, kinematic gates, visual sign-off) while offloading all heavy Python CAD coding, `--fast` oracle loops, and FEA runs to **local Strata subagent workers (`$0`)** that cannot self-certify stages (`GATES.json`).
+
+---
+
+## 10. Nov 26–27 Breakthrough: Why `mtb_29er_v2` Succeeded 100% Locally (Zero GPT Calls)
+
+After applying the full stack, the `mtb_29er_v2` wheel & frame stages jumped dramatically in geometric precision and speed **using 100% local inference (`qwen3.8-flash-next` on Dual V100 + `qwen3.5:9b` on local RTX 4070S, `$0.00` cloud spend)**:
+
+| Metric | Monolithic `v1` (`Nov 26 AM`) | Test-Driven Modular `v2` (`Nov 27 AM`) |
+|---|---|---|
+| **Median Turn Latency** | `16.9s` (spiking to `161s` during compression loops) | **`8.4s`** (`93.4%` KV cache hit rate) |
+| **Part File Size & Rebuild Time** | `21.8 MB` monolith (`323` cmds, `60–90s`/edit) | **`620–836 KB`** per-part `.sc` (`~2–4s` rebuild) |
+| **Compression Thrashing** | `protect_last_n: 12` reclaimed only `1.4k–6.9k` tok/compression | **`protect_last_n: 6` reclaimed `23.8k` tok/compression** |
+| **Loop Safety** | `tool_loop_guardrails.hard_stop_enabled: false` (endless loops) | **`hard_stop_enabled: true`** (`exact_failure: 4`, `no_progress: 4`) |
+| **GPU Division of Labor** | V100 interrupted by auxiliary approvals | **40 V100 calls + 18 local RTX 4070S (`qwen3.5:9b`) calls**, zero V100 slot theft |
+
+### The 5 Compounding Reasons a Local 4-Bit MoE Beat Earlier Monolithic Runs
+1. **Test-Driven CAD (`assert_s1.py` / `assert_s2.py` + `GATES.json`):** Running `solidcraft-cli eval` and mathematically asserting every body's exact bounding box, lateral Y-span, axle collar radius, and merged spoke count within `±0.5 mm` turns CAD into a deterministic compiler/test loop.
+2. **True Part Isolation (`620 KB` Per-Part Files + Frozen `.step` Assembly):** Iterating on a `620 KB` wheel file takes seconds instead of replaying a `21 MB` 323-command timeline.
+3. **Single Source of Truth (`geometry.py` → `COORDINATE_TABLE.json` → `blueprint_v2.png`):** Every part builder imports coordinates from one Python math file — eliminating hand-transcribed coordinate drift.
+4. **Tiered Self-Learned Memory (`solidcraft_lessons.md` + `lessons_*.md`):** Distilled SolidCraft traps (`solid.cylinder` `base` vs `center`, `XZ` extrude `-Y`, `solid.pattern.circular` separate-body merging) prevented repeating earlier API mistakes.
+5. **Eliminating Compression Death-Spirals & Silent Loops:** Lowering `protect_last_n` from `12 → 6`, enabling `tool_loop_guardrails.hard_stop_enabled: true`, offloading `approval` / housekeeping to the local RTX 4070S (`qwen3.5:9b` pinned at 32K ctx `Forever`), and enforcing live SolidCraft GUI + `MEDIA:` checkpoints kept context clean and fast.

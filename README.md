@@ -37,9 +37,10 @@ This repository documents the full engineering journey, forensic telemetry, dead
    - Keeping **95%+ of token generation on local Strata (`$0`)** and spending **pennies** on a frontier visual critic (`gpt-6.1-sol`) at stage gates catches spatial defects in 2 seconds.
 5. **Workers build; Main verifies (`GATES.json`):**
    - Subagents on Strata (`max_concurrent_children: 1` matching `--parallel 2`, `max_iterations: 30`) build modular parts and report artifacts — they **cannot** self-certify a stage as done. The main agent runs the oracle, assertions, and visual gate before advancing.
-6. **Hardware & Inference Tuning (`Dual Tesla V100 32GB PCIe`, `Dual Xeon Gold 6140`, `64 GB RAM`):**
+6. **Hardware & Inference Tuning (`Dual Tesla V100 32GB PCIe`, `Dual Xeon Gold 6140`, `64 GB RAM`, + Local RTX 4070S 12GB):**
    - Upgrading Strata `v0.2.19 (0.1.65)` → **`v0.2.22 (0.1.69)`** unlocked fused `EXP_MODE=8` for `sm_70` V100s and AVX-512 cold-expert kernels: **+81.9% faster cold decode**, **84–117 tok/s** live!
-   - **98,304 (96k) context** is the sweet spot on 64 GB VRAM + 64 GB RAM (`compression.threshold: 0.82` compacts at ~80.6k before context rot while keeping GPU expert cache at ~99% hit rate).
+   - **98,304 (96k) context** is the sweet spot on 64 GB VRAM + 64 GB RAM (`compression.threshold: 0.82`, **`protect_last_n: 6`** so each compaction reclaims ~24k tokens instead of thrashing, and **`tool_loop_guardrails.hard_stop_enabled: true`** to kill silent no-progress loops).
+   - **Local RTX 4070S Co-Processor (`qwen3.5:9b` pinned `Forever` at 32K ctx in Ollama):** Absorbs background `approval` & housekeeping calls in `<1s` locally so the Dual V100 KV cache never gets evicted (median turn latency down to **`8.4s`** at `93.4%` cache hits on `mtb_29er_v2` with **`$0.00` GPT spend**!).
    - **140W power limit** on passive V100s delivers ~98–100% of 170W decode speed (HBM2 stays locked at full `877 MHz` / 900 GB/s even down to 115W) with far less thermal throttling.
 
 ---
