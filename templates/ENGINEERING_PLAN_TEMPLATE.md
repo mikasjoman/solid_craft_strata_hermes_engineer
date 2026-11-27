@@ -4,8 +4,8 @@
 >
 > **Human-Style Build Rhythm (1 Component Per File — No Monoliths):**
 > 1. Build **1 component per file** (`parts/p01_<name>.py` → verify alone in ~2–4s → export `parts/out/p01_<name>.step`).
-> 2. **Snap 2–3 mating `.step` parts together early** in `assembly.py` (`file.insert_step`) and inspect the fit (`contact_sheet.png` / `clash_zoom.png`) before building the next group.
-> 3. **Tweak ONE part at a time** (re-export only that single `.step` and re-check `assembly.py` in ~5s) — never rebuild the entire machine in one giant script.
+> 2. **Snap 2–3 mating `.step` parts together early** — either directly in `assembly.py` OR into an optional **sub-assembly** (`subassemblies/sub_<group>.py` → `subassemblies/out/sub_<group>.step`) where a coupled group makes sense — and inspect the fit (`contact_sheet.png` / `clash_zoom.png`) before building the next group.
+> 3. **Tweak ONE part at a time** (re-export only that single `.step` and re-check the sub-assembly / `assembly.py` in ~5s) — never rebuild the entire machine in one giant script.
 
 ## 1. Iteration Inputs & Locked Constraints
 - **Iteration:** `{{ITERATION}}` (cloned from: `{{PARENT_ITERATION}}`)
