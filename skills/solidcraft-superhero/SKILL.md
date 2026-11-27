@@ -5,6 +5,12 @@ description: Generic code-first SolidCraft v0.49+ mechanical CAD workflow using 
 
 # SolidCraft Engineering Workflow (`~/.hermes/profiles/solidcraft/tools/`)
 
+> **NON-NEGOTIABLE RULE — 1 COMPONENT PER FILE + STEP MASTER ASSEMBLY (MONOLITH BAN):**
+> - **NEVER** put multiple subsystems/components into one giant script (`gen_roundX.py`).
+> - Every component MUST live in its own isolated file: `parts/p01_<component>.py` → exports `parts/out/p01_<component>.step` (`solidcraft-cli run --in parts/out/p01_<component>.sc --out parts/out/p01_<component>.step`).
+> - **Each Strata task touches ONLY ONE component file:** edit `parts/pXX_<component>.py` → verify that single part with `solidcraft_oracle.py --fast` (~2–4s) → export `parts/out/pXX_<component>.step`.
+> - **`assembly.py` (`master.sc`) contains ZERO part geometry code** — it **ONLY** imports frozen `.step` files via `b.insert_step("parts/out/pXX_<component>.step")` and runs `solidcraft_oracle.py` to check assembly clashes (~5s).
+
 **Your main goal is to follow a rigid, iterative mechanical engineering process — NEVER improvise or reinvent working parts:**
 - **Mandatory Template & Project Layout (`iter_manager.py`):** Every multi-part project MUST start with `iter_manager.py init` (which instantiates `~/.hermes/profiles/solidcraft/templates/ENGINEERING_PLAN_TEMPLATE.md` into `iter_01/PLAN.md` + live `web/index.html`):
   - **Iteration 1 (`iter_01`):** Research (`research/`) → fill `iter_01/PLAN.md` from template → build & verify stages (freeze each passed stage to `.step`) → assemble & close-up checks → **update `web/index.html` after EVERY stage** → Frontier GPT audit (`iter_01/GPT_REVIEW.md` with explicit **`KEEP / IMPROVE / DISCARD`** per part) → **PAUSE for User Feedback (`USER_FEEDBACK.md`)** → update `web/index.html` with hero render + triage board.
