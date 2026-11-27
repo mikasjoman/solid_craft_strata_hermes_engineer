@@ -35,7 +35,7 @@ delegation:
   base_url: http://<STRATA_HOST>:8086/v1
   reasoning_effort: medium
   max_concurrent_children: 1    # Matches Strata --parallel 2 cleanly
-  max_iterations: 30            # Hard cap prevents runaway subagents
+  max_iterations: 12            # Hard cap prevents runaway subagents
   subagent_auto_approve: true
   independent_completions: true # Best in Hermes Desktop; set false in SolidCraft ACP
 
