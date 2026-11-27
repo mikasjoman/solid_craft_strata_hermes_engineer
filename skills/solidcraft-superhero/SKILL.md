@@ -3,7 +3,11 @@ name: solidcraft-superhero
 description: Generic code-first SolidCraft v0.49+ mechanical CAD workflow using an isolated mechanical research subagent, typed Python SDK (solidcraft_builder.py), fast/full verification oracle + 3x2 X-ray contact sheet (solidcraft_oracle.py), 2D blueprint pre-flight (blueprint_2d.py), inline chat image updates (MEDIA:), and FEA load-path checks. Load at the start of any SolidCraft design task.
 ---
 
-# SolidCraft Superhero Toolkit (`~/.hermes/profiles/solidcraft/tools/`)
+# SolidCraft Engineering Workflow (`~/.hermes/profiles/solidcraft/tools/`)
+
+**Your main goal is to follow a rigid mechanical engineering process with a clear method:**
+- **Engineering loop:** `Plan → Design → Build → Verify → Review`
+- **Master planning + final review:** frontier model reviewer (e.g., `gpt-6.1-sol`); local Strata builds parts, runs Python assertions (`geometry.py` / `assert_*.py`), and runs `solidcraft_oracle.py`. Subagent workers **cannot** self-certify a stage — main verifies gates (`GATES.json`) before advancing.
 
 ```python
 import os, sys
