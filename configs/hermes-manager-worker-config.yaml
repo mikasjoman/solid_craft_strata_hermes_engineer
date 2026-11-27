@@ -11,7 +11,7 @@ model:
 
 agent:
   max_turns: 300
-  reasoning_effort: medium
+  reasoning_effort: low
   image_input_mode: native
 
 tools:
@@ -33,7 +33,7 @@ delegation:
   provider: strata
   model: qwen3.8-flash-next-ud-q4_k_xl
   base_url: http://<STRATA_HOST>:8086/v1
-  reasoning_effort: medium
+  reasoning_effort: low
   max_concurrent_children: 1    # Matches Strata --parallel 2 cleanly
   max_iterations: 12            # Hard cap prevents runaway subagents
   subagent_auto_approve: true

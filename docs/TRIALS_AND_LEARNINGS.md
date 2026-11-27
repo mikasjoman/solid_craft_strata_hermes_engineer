@@ -129,3 +129,22 @@ After applying the full stack, the `mtb_29er_v2` wheel & frame stages jumped dra
 3. **Single Source of Truth (`geometry.py` → `COORDINATE_TABLE.json` → `blueprint_v2.png`):** Every part builder imports coordinates from one Python math file — eliminating hand-transcribed coordinate drift.
 4. **Tiered Self-Learned Memory (`solidcraft_lessons.md` + `lessons_*.md`):** Distilled SolidCraft traps (`solid.cylinder` `base` vs `center`, `XZ` extrude `-Y`, `solid.pattern.circular` separate-body merging) prevented repeating earlier API mistakes.
 5. **Eliminating Compression Death-Spirals & Silent Loops:** Lowering `protect_last_n` from `12 → 6`, enabling `tool_loop_guardrails.hard_stop_enabled: true`, offloading `approval` / housekeeping to the local RTX 4070S (`qwen3.5:9b` pinned at 32K ctx `Forever`), and enforcing live SolidCraft GUI + `MEDIA:` checkpoints kept context clean and fast.
+
+---
+
+## 11. Nov 27–28 Findings: Visual Scaffolding, Surgical Delegation, Cost ROI & Hardware Reliability
+
+### 1. Research-Backed Visual Scaffolding (`solidcraft_oracle.py`)
+Recent 2024–2026 VLM + CAD research (*"Do VLMs Fail to Plan, or Fail to See?"*, *3DAxisPrompt*, *Set-of-Mark*, *CAD-Assistant*, *CADCodeVerify*) shows that upgrading what the model **sees** beats prompt engineering by +20–30%:
+- **Set-of-Mark `[1]..[N]` Badges + Axis Rulers + `Z=0` Datum:** Automatically stamped onto orthographic tiles (`FRONT`, `RIGHT`, `TOP`, `BACK`) with a bottom part legend and red highlights on outlier/split bodies.
+- **Auto-Cropped "Zoom-on-Clash" (`clash_zoom.png`):** When `hard_clashes > 0`, `solidcraft_oracle.py` automatically aims `solidcraft-cli snapshot --camera` at the top interference(s), colors Body A **red**, Body B **cyan**, fades all other bodies to `opacity=0.08`, stamps exact overlap `mm³` + `(x, y, z)`, and emits `MEDIA:clash_zoom.png`.
+
+### 2. Middle-Ground Architect ↔ Worker Efficiency
+- **Strict 1-Component-Per-File + Optional Sub-Assemblies (Monolith Ban):** Every Strata worker task edits **only one** component file (`parts/pXX_<name>.py` → exports `parts/out/pXX_<name>.step`). Mate 2–3 parts early (directly in `assembly.py` or via optional `subassemblies/sub_<group>.step`), inspect, and tweak one part at a time (~3–5s rebuilds instead of 60–146s monolithic replays).
+- **Surgical Patch Delegation + 12-Turn Escalation Cap (`delegation.max_iterations: 12`):** The Frontier Architect (`gpt-6.2-sol` at `reasoning_effort: low`) reads `STATE.json` + `clash_zoom.png` and hands Strata an exact 3–5 line geometric delta spec. If a worker doesn't pass in 12 turns, it stops and escalates instead of spinning for 40+ turns.
+- **No Silent 9B CAD Fallback:** Removed `qwen3.5:9b` (`strata-local`) from CAD `fallback_providers` (kept only for lightweight auxiliary tasks like titles/memory) so a LAN drop fails fast instead of burning 40+ turns on a 9B model.
+
+### 3. Verified Cost & Hardware Benchmarks
+- **Real Token Offload (Dual-V100 Strata vs. Frontier API):** Across 37 Strata sessions (`6.95M` input + `73.16M` cached + `1.76M` output, `>91%` KV cache hit), the same workload on `gpt-6.2-sol` would have cost **~$38.80 (~410 kr)** vs. **~30 kr** electricity (`~3 kr/hr`) on Dual V100s — **>91% cost savings (~12× cheaper)**.
+- **Local Model Benchmarks (`64 GB VRAM + 61 GB RAM` envelope):** Verified that **`Qwen3.8-Flash-Next` (`UD-Q4_K_XL`, 125B / 6B active, 115–130 tok/s)** still outperforms both **`NVIDIA-Nemotron-3.5-Super-VL` (120B / 12B)** (`62.5%` vs `51.8%` SWE-bench Pro; `91.9%` vs `88.2%` LiveCodeBench v6) and **`Qwen3.8-27B` Dense** (`58.7%` vs `42.2%` DeepSWE 1.1) while running ~3× faster. Larger models (`DeepSeek-V4.1-Flash` 552B) require 2-bit quants (`~95 GB`) or 128 GB+ system RAM for `IQ3`.
+- **Self-Healing USB Wi-Fi Watchdog (`hp`):** Realtek `rtw88_8821au` USB Wi-Fi dongles can hang with `-71` (`-EPROTO`) under sustained Dual-V100 load. Fixed permanently via `rtw88_core disable_lps_deep=y`, udev `power/control=on`, NetworkManager `wifi.powersave = 2`, and a 60s systemd `wifi-watchdog.timer` (driver reload → USB unbind/rebind → clean reboot).
