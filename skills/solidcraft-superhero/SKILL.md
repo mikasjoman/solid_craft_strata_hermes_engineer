@@ -5,16 +5,19 @@ description: Generic code-first SolidCraft v0.49+ mechanical CAD workflow using 
 
 # SolidCraft Engineering Workflow (`~/.hermes/profiles/solidcraft/tools/`)
 
-**Your main goal is to follow a rigid mechanical engineering process with a clear method:**
-- **Engineering loop:** `Plan → Design → Build → Verify → Review`
-- **Master planning + final review:** frontier model reviewer (e.g., `gpt-6.1-sol`); local Strata builds parts, runs Python assertions (`geometry.py` / `assert_*.py`), and runs `solidcraft_oracle.py`. Subagent workers **cannot** self-certify a stage — main verifies gates (`GATES.json`) before advancing.
+**Your main goal is to follow a rigid, iterative mechanical engineering process — NEVER improvise or reinvent working parts:**
+- **Mandatory Template & Project Layout (`iter_manager.py`):** Every multi-part project MUST start with `iter_manager.py init` (which instantiates `~/.hermes/profiles/solidcraft/templates/ENGINEERING_PLAN_TEMPLATE.md` into `iter_01/PLAN.md` + live `web/index.html`):
+  - **Iteration 1 (`iter_01`):** Research (`research/`) → fill `iter_01/PLAN.md` from template → build & verify stages (freeze each passed stage to `.step`) → assemble & close-up checks → **update `web/index.html` after EVERY stage** → Frontier GPT audit (`iter_01/GPT_REVIEW.md` with explicit **`KEEP / IMPROVE / DISCARD`** per part) → **PAUSE for User Feedback (`USER_FEEDBACK.md`)** → update `web/index.html` with hero render + triage board.
+  - **Iteration 2+ (`iter_02`, `iter_03`...):** Run `iter_manager.py clone <project> --from iter_01 --to iter_02 --discard PartA,PartB` to **clone** all working parts (`.py`, `.sc`, frozen `.step`), `research/`, `COORDINATE_TABLE.json`, and `GATES.json`, skipping only `DISCARD` parts. Follow the **exact same `PLAN.md` template**, rebuilding ONLY `IMPROVE` / `DISCARD` parts, updating `web/index.html` live during & at the end of the iteration, and pausing for user feedback before closing.
+- **Master planning + end-of-iteration triage:** Frontier GPT reviewer (e.g., `gpt-6.2-sol`); local Strata builds parts, runs `cad_math.py`, and runs `solidcraft_oracle.py --expect-json GATES.json --publish-recovery ...`. Subagents **cannot** self-certify a stage.
 
 ```python
-import os, sys
-sys.path.insert(0, os.path.expanduser("~/.hermes/profiles/solidcraft/tools"))
+import sys
+sys.path.insert(0, "/home/mikaelsjoman/.hermes/profiles/solidcraft/tools")
 from solidcraft_builder import SolidCraftBuilder
 from solidcraft_oracle import verify_design
 from blueprint_2d import render_blueprint
+import cad_math as cm
 ```
 
 ## 0. Phase 0 — Isolated Mechanical Research Subagent (`delegate_task`)
@@ -53,7 +56,7 @@ Auto-validates all 903 v0.49.1 commands. Generic mechanical helpers:
 - **Hide construction before final render:** `b.cmd("browser.visibility", origin=False, sketches=False, construction=False)`.
 
 ## 4. Fast vs. Full Oracle (`solidcraft_oracle.py`) & Hard Per-Stage Cap
-- **Strict per-stage cap (NEVER get stuck):** Maximum **3 oracle fix loops** per stage (target **< 8 minutes per stage**). On strike 2 of the same defect, escalate once to `delegate_task` (`gpt-6.1-sol`) with a <300-word diff + error; on strike 3, simplify non-critical detail and advance.
+- **Strict per-stage cap (NEVER get stuck):** Maximum **3 oracle fix loops** per stage (target **< 8 minutes per stage**). On strike 2 of the same defect, escalate once to `delegate_task` (`gpt-6.2-sol`) with a <300-word diff + error; on strike 3, simplify non-critical detail and advance.
 - **Incremental stage inner loop (~2–4s, loads previous stage `.sc` instead of replaying earlier stages from scratch):**
   ```bash
   python3 ~/.hermes/profiles/solidcraft/tools/solidcraft_oracle.py stage_X_delta.json --in ./stage_prev/model.sc --out-dir ./stage_X --save ./stage_X/model.sc --fast

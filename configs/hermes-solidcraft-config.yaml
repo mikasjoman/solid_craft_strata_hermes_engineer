@@ -1,5 +1,5 @@
 # Sanitized Hermes Agent profile config for SolidCraft CAD (~/.hermes/profiles/solidcraft/config.yaml)
-# Preset A: Local-First (Strata builds 95%+ at $0, OpenAI gpt-6.1-sol does visual QA & 2-strike deadlocks).
+# Preset A: Local-First (Strata builds 95%+ at $0, OpenAI gpt-6.2-sol does visual QA & 2-strike deadlocks).
 # Replace <STRATA_HOST> with your Strata server IP/hostname (e.g. 192.168.1.x).
 
 model:
@@ -32,7 +32,7 @@ delegation:
   # Option 1 (Local-first, ~$0.10-$0.50/project):
   #   model = strata, delegation = openai-api (Phase 0 spec + 2-strike surgeon)
   # Option 2 (Manager-Worker, ~$0.50-$1.20/project, ~10x faster wall-clock):
-  #   model = openai-api (gpt-6.1-sol), delegation = strata (local V100 workers)
+  #   model = openai-api (gpt-6.2-sol), delegation = strata (local V100 workers)
   backend: hybrid
   provider: strata
   model: qwen3.8-flash-next-ud-q4_k_xl
@@ -47,23 +47,23 @@ providers:
   strata:
     base_url: http://<STRATA_HOST>:8086/v1
     api_key: sk-strata
-    context_length: 98304
+    context_length: 131072
     extra_body:
       max_tokens: 16384        # NEVER set reasoning_budget_tokens: 1024 here!
 
 auxiliary:
   vision:
     provider: openai-api
-    model: gpt-6.1-sol         # Strong visual critic (~$0.01/image); NEVER use a 9B VLM for CAD QA
+    model: gpt-6.2-sol         # Strong visual critic (~$0.01/image); NEVER use a 9B VLM for CAD QA
     timeout: 120
   review:
     provider: openai-api
-    model: gpt-6.1-sol
+    model: gpt-6.2-sol
   compression:
     provider: strata
     model: qwen3.8-flash-next-ud-q4_k_xl
     reasoning_effort: none     # Prevents 70s silent thinking stalls during thread summarization
-    context_length: 98304
+    context_length: 131072
 
 mcp_servers:
   solidcraft-live:

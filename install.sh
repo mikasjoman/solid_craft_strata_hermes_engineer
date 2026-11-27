@@ -29,9 +29,10 @@ if ! command -v solidcraft-cli >/dev/null 2>&1 && [ ! -x "$HOME/.local/bin/solid
 fi
 
 echo "==> Installing Python CAD & FEA tools to $SC_PROFILE/tools/"
-mkdir -p "$SC_PROFILE/tools"
+mkdir -p "$SC_PROFILE/tools" "$SC_PROFILE/templates"
 cp -f "$SCRIPT_DIR"/tools/*.py "$SC_PROFILE/tools/"
-chmod +x "$SC_PROFILE/tools/blueprint_2d.py" "$SC_PROFILE/tools/solidcraft_oracle.py" "$SC_PROFILE/tools/solidcraft_fea.py"
+cp -f "$SCRIPT_DIR"/templates/* "$SC_PROFILE/templates/"
+chmod +x "$SC_PROFILE/tools/blueprint_2d.py" "$SC_PROFILE/tools/solidcraft_oracle.py" "$SC_PROFILE/tools/solidcraft_fea.py" "$SC_PROFILE/tools/iter_manager.py" "$SC_PROFILE/tools/cad_math.py"
 
 echo "==> Installing generic CAD & FEA skills to both solidcraft and default profiles"
 mkdir -p "$SC_PROFILE/skills" "$DEFAULT_SKILLS"
@@ -66,6 +67,6 @@ fi
 
 echo ""
 echo "Done! Next steps:"
-echo "  1. Set OPENAI_API_KEY in ~/.hermes/.env (used for gpt-6.1-sol visual QA / Manager-Worker mode)."
+echo "  1. Set OPENAI_API_KEY in ~/.hermes/.env (used for gpt-6.2-sol visual QA / Manager-Worker mode)."
 echo "  2. In SolidCraft GUI: Preferences -> Assistant -> enable the control channel on 127.0.0.1:27878."
 echo "  3. In Hermes Desktop: switch to the 'solidcraft' profile (bottom-left sidebar) and start a New session."

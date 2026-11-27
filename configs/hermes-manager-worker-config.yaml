@@ -1,11 +1,11 @@
 # Sanitized Hermes Agent profile config — Preset B: OpenAI Manager -> Local Strata Workers
 # Estimated cost: ~$0.50-$1.20 per complex multi-stage CAD assembly (~10x faster wall-clock than all-local).
-# OpenAI (gpt-6.1-sol) plans coordinates, dispatches small part tasks, and runs visual QA.
+# OpenAI (gpt-6.2-sol) plans coordinates, dispatches small part tasks, and runs visual QA.
 # Local Strata (Qwen3.8-Flash-Next @ 80-117 tok/s, $0) does all Python CAD coding, oracle loops & FEA.
 # Replace <STRATA_HOST> with your Strata server IP/hostname (e.g. 192.168.1.x).
 
 model:
-  default: gpt-6.1-sol
+  default: gpt-6.2-sol
   provider: openai-api
   supports_vision: true
 
@@ -43,23 +43,23 @@ providers:
   strata:
     base_url: http://<STRATA_HOST>:8086/v1
     api_key: sk-strata
-    context_length: 98304
+    context_length: 131072
     extra_body:
       max_tokens: 16384
 
 auxiliary:
   vision:
     provider: openai-api
-    model: gpt-6.1-sol
+    model: gpt-6.2-sol
     timeout: 120
   review:
     provider: openai-api
-    model: gpt-6.1-sol
+    model: gpt-6.2-sol
   compression:
     provider: strata
     model: qwen3.8-flash-next-ud-q4_k_xl
     reasoning_effort: none
-    context_length: 98304
+    context_length: 131072
 
 mcp_servers:
   solidcraft-live:

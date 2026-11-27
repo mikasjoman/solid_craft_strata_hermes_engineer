@@ -10,7 +10,7 @@
     "--spec", "3",
     "--spec-min-p", "0.38",
     "--mtp", "/home/<USER>/Strata-data/mtp/rt",
-    "--max-context", "98304",
+    "--max-context", "131072",
     "--kv", "int8",
     "--remote-expert-opt",
     "--pipeline-windows", "2",
