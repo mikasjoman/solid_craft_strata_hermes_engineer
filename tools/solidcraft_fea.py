@@ -9,15 +9,16 @@ Capabilities:
      (e.g. wheels or moving parts placed visually without physical axles/pins/joins).
   2. 3D Linear Static FEA: solves displacement (mm), 3D Cauchy stress tensor,
      von Mises stress (MPa), Yield Safety Factor, and exact hotspot (X, Y, Z).
-  3. Renders a labeled 2-view von Mises stress heatmap PNG for visual inspection.
+  3. Outputs `fea_report.json`, a 2-view von Mises stress heatmap (`fea_stress.png`),
+     and a magnified deformation animation (`fea_deform.gif`).
 
-Usage:
+Usage (NOTE: always use `=` for flags with negative coordinates!):
   ~/.hermes/profiles/solidcraft/fea-venv/bin/python solidcraft_fea.py part.step \
     --material 6061-T6 \
-    --fix-box -620,-100,340,-560,100,395 \
-    --fix-box 320,-40,720,410,40,860 \
-    --load-box -180,-50,280,-120,50,340 \
-    --force 0,0,-1500 \
+    --fix-box=-620,-100,340,-560,100,395 \
+    --fix-box=320,-40,720,410,40,860 \
+    --load-box=-180,-50,280,-120,50,340 \
+    --force=0,0,-1500 \
     --mesh-size 12 \
     --out-dir ./fea_out
 """

@@ -13,6 +13,14 @@ Runs a SolidCraft script/design headlessly with `--param-check strict` and
 Then renders 6 views (iso, front, right, top, back, + X-ray `--section`) via
 `solidcraft-cli snapshot`, stitches a labeled 3x2 PNG contact sheet, and writes
 a compact (<1.5 KB) `STATE.json` to prevent long-run context amnesia.
+
+Usage:
+  python3 ~/.hermes/profiles/solidcraft/tools/solidcraft_oracle.py build.json \\
+    --out-dir ./oracle_out --save part.sc --section y=0 \\
+    --publish-recovery my_part_live.sc
+
+  # Fast inner-loop check (skips clearance + PNG render):
+  python3 ~/.hermes/profiles/solidcraft/tools/solidcraft_oracle.py build.json --fast
 """
 
 from __future__ import annotations
@@ -356,6 +364,30 @@ def verify_design(
     return report
 
 
+def publish_to_recovery(
+    sc_path: Path,
+    recovery_name: str,
+    contact_sheet: Optional[Path] = None,
+) -> Dict[str, str]:
+    """Copy a verified .sc (and optional contact_sheet.png) into SolidCraft's allowed
+    `~/.local/share/solidcraft/recovery/` folder so `mcp__solidcraft_live__open` and
+    `screenshot` never hit 'outside the folders this agent may use' sandbox errors.
+    """
+    import shutil
+
+    rec_dir = Path(os.path.expanduser("~/.local/share/solidcraft/recovery"))
+    rec_dir.mkdir(parents=True, exist_ok=True)
+    name = recovery_name if recovery_name.endswith(".sc") else f"{recovery_name}.sc"
+    dst_sc = rec_dir / Path(name).name
+    shutil.copy2(sc_path, dst_sc)
+    out = {"recovery_sc": str(dst_sc)}
+    if contact_sheet and contact_sheet.exists():
+        dst_png = rec_dir / f"{dst_sc.stem}_contact_sheet.png"
+        shutil.copy2(contact_sheet, dst_png)
+        out["recovery_contact_sheet"] = str(dst_png)
+    return out
+
+
 def _write_state(out_dir: Path, report: Dict[str, Any]) -> None:
     """Write compact STATE.json (<1.5 KB target) for long-run anti-amnesia."""
     compact = {
@@ -385,6 +417,8 @@ def main() -> int:
     ap.add_argument("--clearance", type=float, default=None, help="Optional min clearance in mm")
     ap.add_argument("--no-render", action="store_true", help="Skip 3x2 contact sheet rendering")
     ap.add_argument("--fast", action="store_true", help="Inner-loop fast mode (skip clearance + render)")
+    ap.add_argument("--publish-recovery", dest="publish_recovery", default=None,
+                    help="Also copy verified .sc + contact_sheet.png into ~/.local/share/solidcraft/recovery/<name>.sc for safe live GUI open()")
     args = ap.parse_args()
 
     rep = verify_design(
@@ -397,6 +431,12 @@ def main() -> int:
         render_views=not args.no_render,
         fast=args.fast,
     )
+    if args.publish_recovery and rep.get("saved_design"):
+        sc_p = Path(rep["saved_design"])
+        cs_p = Path(rep["contact_sheet"]) if rep.get("contact_sheet") else None
+        if sc_p.exists():
+            rep.update(publish_to_recovery(sc_p, args.publish_recovery, cs_p))
+            _write_state(Path(args.out_dir).resolve(), rep)
     print(json.dumps(rep, indent=2))
     return 0 if rep["pass"] else 1
 

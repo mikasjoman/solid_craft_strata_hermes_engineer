@@ -1,8 +1,24 @@
-"""Auto-generated schema-validated Python SDK for SolidCraft CLI (v0.49+).
+"""Schema-validated Python SDK for SolidCraft CLI (v0.49+).
 
 Reads and caches the live JSON Schema catalog from `solidcraft-cli commands`
 keyed by `solidcraft-cli --version`, so every command name and parameter key
 is validated in Python BEFORE SolidCraft executes.
+
+Quick Start:
+    import os, sys
+    sys.path.insert(0, os.path.expanduser("~/.hermes/profiles/solidcraft/tools"))
+    from solidcraft_builder import SolidCraftBuilder
+
+    b = SolidCraftBuilder()
+    b.tube_between("DownTube", [0,0,0], [600,0,400], diameter=44, extend_start_mm=2, extend_end_mm=2)
+    b.insert_step("parts/wheel_front.step", name="Wheel_Front")
+    b.save_json("build.json")
+
+Key Helpers:
+  - `tube_between(name, p0, p1, diameter, extend_start_mm=2, extend_end_mm=2)` — exact 3D unit-vector cylinder
+  - `swept_tube(...)` / `swept_tube_3d(...)` — curved/bent tubes along 2D/3D paths
+  - `torus(...)`, `ring_boss(...)`, `safe_fillet(...)`, `insert_step(path)`
+  - Gotchas: avoid `solid.sphere` joins (use `solid.cylinder` / `solid.box` with >=1mm overlap).
 """
 
 from __future__ import annotations
@@ -414,8 +430,24 @@ class SolidCraftBuilder:
         radius: Any,
         body: Optional[str] = None,
     ) -> "SolidCraftBuilder":
-        """Add a fillet feature (validated against v0.49 schema)."""
+        """Add a fillet feature (validated against v0.49+ schema)."""
         return self.cmd("solid.fillet", name=name, edges=edges, radius=radius, body=body)
+
+    def insert_step(self, path: str | Path, **kwargs: Any) -> "SolidCraftBuilder":
+        """Insert a frozen STEP/IGES/FCStd/3DM part into an assembly (fast, no timeline replay).
+
+        Validates file extension upfront so `.sc` files fail fast with an actionable error
+        instead of crashing SolidCraft CLI.
+        """
+        p = Path(os.path.expanduser(str(path)))
+        valid_exts = {".step", ".stp", ".igs", ".iges", ".fcstd", ".3dm"}
+        if p.suffix.lower() not in valid_exts:
+            raise ValueError(
+                f"insert_step() requires a STEP/IGES/FCStd/3DM file ({sorted(valid_exts)}), "
+                f"got `{p.name}`. Export `.sc` to `.step` first: "
+                f"`solidcraft-cli run --in {p} --out {p.with_suffix('.step')}`"
+            )
+        return self.cmd("file.insert_step", path=str(p), **kwargs)
 
     def to_script(self) -> Dict[str, Any]:
         return {"commands": list(self.commands)}
