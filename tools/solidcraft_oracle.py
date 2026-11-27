@@ -364,6 +364,44 @@ def verify_design(
     return report
 
 
+def check_expectations(
+    bodies: List[Dict[str, Any]],
+    expect_path: str | Path,
+) -> List[str]:
+    """Validate declarative stage gates (required bodies, closedness, bbox bounds, volume)."""
+    spec = json.loads(Path(expect_path).read_text(encoding="utf-8"))
+    by_name = {b.get("name"): b for b in bodies if b.get("name")}
+    failures: List[str] = []
+
+    for req in spec.get("required_bodies", []) or []:
+        if req not in by_name:
+            failures.append(f"missing required body `{req}` (have: {sorted(by_name)})")
+
+    for name, rules in (spec.get("bodies") or {}).items():
+        b = by_name.get(name)
+        if not b:
+            failures.append(f"missing body `{name}` for gate check")
+            continue
+        if rules.get("closed") is True and b.get("closed") is False:
+            failures.append(f"`{name}` is not closed")
+        vol = b.get("volume_mm3")
+        if "volume_mm3" in rules and vol is not None:
+            vlo, vhi = float(rules["volume_mm3"][0]), float(rules["volume_mm3"][1])
+            if not (vlo <= float(vol) <= vhi):
+                failures.append(f"`{name}` volume {vol:.1f} mm^3 outside [{vlo:.1f}, {vhi:.1f}]")
+        bb = b.get("bbox")
+        if isinstance(bb, dict) and "min" in bb and "max" in bb:
+            for ax_i, ax_name in enumerate(("x", "y", "z")):
+                if ax_name in rules:
+                    lo, hi = float(rules[ax_name][0]), float(rules[ax_name][1])
+                    bmin, bmax = float(bb["min"][ax_i]), float(bb["max"][ax_i])
+                    if bmin < lo or bmax > hi:
+                        failures.append(
+                            f"`{name}` {ax_name} [{bmin:.2f}, {bmax:.2f}] outside [{lo:.2f}, {hi:.2f}]"
+                        )
+    return failures
+
+
 def publish_to_recovery(
     sc_path: Path,
     recovery_name: str,
@@ -403,6 +441,7 @@ def _write_state(out_dir: Path, report: Dict[str, Any]) -> None:
         "hard_clashes": report["hard_clashes"][:10],
         "clearance_violations": report["clearance_violations"][:10],
         "sweep_failures": report["sweep_failures"][:5],
+        "gate_failures": report.get("gate_failures", [])[:10],
     }
     (out_dir / "STATE.json").write_text(json.dumps(compact, indent=2), encoding="utf-8")
 
@@ -417,6 +456,8 @@ def main() -> int:
     ap.add_argument("--clearance", type=float, default=None, help="Optional min clearance in mm")
     ap.add_argument("--no-render", action="store_true", help="Skip 3x2 contact sheet rendering")
     ap.add_argument("--fast", action="store_true", help="Inner-loop fast mode (skip clearance + render)")
+    ap.add_argument("--expect-json", dest="expect_json", default=None,
+                    help="Optional declarative gates JSON (required_bodies, bbox x/y/z, volume_mm3)")
     ap.add_argument("--publish-recovery", dest="publish_recovery", default=None,
                     help="Also copy verified .sc + contact_sheet.png into ~/.local/share/solidcraft/recovery/<name>.sc for safe live GUI open()")
     args = ap.parse_args()
@@ -431,6 +472,12 @@ def main() -> int:
         render_views=not args.no_render,
         fast=args.fast,
     )
+    if args.expect_json:
+        gate_fails = check_expectations(rep.get("bodies", []), args.expect_json)
+        rep["gate_failures"] = gate_fails
+        if gate_fails:
+            rep["pass"] = False
+        _write_state(Path(args.out_dir).resolve(), rep)
     if args.publish_recovery and rep.get("saved_design"):
         sc_p = Path(rep["saved_design"])
         cs_p = Path(rep["contact_sheet"]) if rep.get("contact_sheet") else None

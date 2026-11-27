@@ -23,6 +23,14 @@ Never rely on static visual inspection alone for rotating or coupled mechanisms.
 2. **Ask the user when loads vary**: If the object's load depends on usage (e.g. bike rider max weight + riding style, ladder user weight + required margin, material), ask 2–3 crisp questions with defaults before running FEA (in Autonomous Mode, pick the conservative standard and state assumptions explicitly in the report).
 3. **Test realistic worst-case + combined loads**, and always report the assumed mass, impact factor, material, and boundary conditions alongside `safety_factor_p99`.
 
+## 2b. 1-Second Back-of-the-Napkin Pre-Check (`cad_math.py`) — Run Before 3D FEA!
+Before spending 30–60s meshing 3D FEA, sanity-check critical tubes, beams, columns, shafts, or bolts in `<5 ms` using `~/.hermes/profiles/solidcraft/tools/cad_math.py`:
+- `cad_math.py beam --length L --force F --material 6061-T6 --shape tube --od 38 --wall 2.0 --support cantilever`
+- `cad_math.py buckling --length L --force F --material 6061-T6 --shape tube --od 31.8 --wall 1.6`
+- `cad_math.py bolt --dia 12 --force F --planes 2 --material 7075-T6`
+- `cad_math.py torsion --torque-nm T --length L --material 6061-T6 --shape tube --od 31.8 --wall 2.0`
+If `safety_factor < 1.5`, thicken or resize **immediately** before exporting STEP or running 3D FEA.
+
 ## 3. Running 3D Structural FEA (`solidcraft_fea.py`)
 1. Export the load-bearing solid or assembly from SolidCraft to STEP:
    ```bash
