@@ -18,7 +18,12 @@ Never rely on static visual inspection alone for rotating or coupled mechanisms.
 3. **Full 360° swept-envelope clearance:** Verify that every rotating arm, pulley, rotor, or linkage clears adjacent stationary structure and belts/chains across its **entire 360° swept circle**, not just at its static build angle.
 4. **Top (`XY`) + Side (`XZ`) visual gate:** Always inspect a close-up Top + Side render via `vision_analyze` (`gpt-6.1-sol`) specifically checking phase opposition, lateral ordering, and rotational clearance.
 
-## 2. Running 3D Structural FEA (`solidcraft_fea.py`)
+## 2. Derive Real Load Cases First (Never Guess Arbitrary Forces!)
+1. **Check standards online (`web_search`)**: Look up typical load cases, dynamic impact multipliers (e.g. `2.5–4×` for shock/human-rated gear), and worst-case load directions (vertical + braking/lateral/torsion) for the application (e.g. ISO 4210 for bikes, EN 131 for ladders).
+2. **Ask the user when loads vary**: If the object's load depends on usage (e.g. bike rider max weight + riding style, ladder user weight + required margin, material), ask 2–3 crisp questions with defaults before running FEA (in Autonomous Mode, pick the conservative standard and state assumptions explicitly in the report).
+3. **Test realistic worst-case + combined loads**, and always report the assumed mass, impact factor, material, and boundary conditions alongside `safety_factor_p99`.
+
+## 3. Running 3D Structural FEA (`solidcraft_fea.py`)
 1. Export the load-bearing solid or assembly from SolidCraft to STEP:
    ```bash
    solidcraft-cli run --in model.sc --out part.step
@@ -40,7 +45,7 @@ Never rely on static visual inspection alone for rotating or coupled mechanisms.
    - Repeat `--fix-box` and `--load-box` for multiple supports or load zones.
    - Start with `--mesh-size 10..15` (coarse/fast, ~5–15s) for large parts (>300 mm) and `--mesh-size 3..6` for small brackets (<150 mm).
 
-## 3. Reading `FEA_REPORT.json` & `fea_stress.png`
+## 4. Reading `FEA_REPORT.json` & `fea_stress.png`
 - **`connected_components > 1` (`DISCONNECTED LOAD PATH`):** Parts are floating / unattached — add physical axles, shafts, pins, or joins before trusting any structural result.
 - **`safety_factor_p99` & `hotspot_xyz_mm`:** Require `safety_factor_p99 >= 1.5` (use `p99` to ignore single-element sharp-corner singularities, and inspect `fea_stress.png` via `vision_analyze`).
 - **If `pass: false`:** Increase wall thickness, tube OD, rib depth, or add a gusset/fillet at `hotspot_xyz_mm`, rebuild, and re-run FEA until `pass: true`.
