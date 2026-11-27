@@ -10,8 +10,8 @@ Quick Start:
     from solidcraft_builder import SolidCraftBuilder
 
     b = SolidCraftBuilder()
-    b.tube_between("DownTube", [0,0,0], [600,0,400], diameter=44, extend_start_mm=2, extend_end_mm=2)
-    b.insert_step("parts/wheel_front.step", name="Wheel_Front")
+    b.tube_between("MainStrut", [0,0,0], [600,0,400], diameter=44, extend_start_mm=2, extend_end_mm=2)
+    b.insert_step("parts/rotor_hub.step", name="Rotor_Hub")
     b.save_json("build.json")
 
 Key Helpers:

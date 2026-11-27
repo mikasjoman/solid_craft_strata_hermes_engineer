@@ -7,11 +7,11 @@ Visual Gate to catch proportion, angle, and clearance errors upfront.
 
 Expected JSON schema:
 {
-  "title": "29er Hardtail MTB Frame",
-  "keypoints": {"BB": [0, 0, 310], "HT_bot": [620, 0, 695], ...},
-  "members": [{"p0": "BB", "p1": "HT_bot", "label": "DownTube", "color": "#4ea8de"}],
-  "circles": [{"center": [0, 0, 370], "radius": 370, "plane": "XZ", "label": "Rear Tire OD 740"}],
-  "notes": ["HA = 66.5 deg", "Wheelbase = 1195 mm"]
+  "title": "Tubular Truss Frame",
+  "keypoints": {"J1": [0, 0, 100], "J2": [600, 0, 480], ...},
+  "members": [{"p0": "J1", "p1": "J2", "label": "MainBeam", "color": "#4ea8de"}],
+  "circles": [{"center": [0, 0, 100], "radius": 60, "plane": "XZ", "label": "Bearing Bore OD 120"}],
+  "notes": ["Angle = 32.3 deg", "Span = 600 mm"]
 }
 """
 

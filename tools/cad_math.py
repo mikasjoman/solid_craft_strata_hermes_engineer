@@ -17,7 +17,7 @@ Quick Start (Python):
     cm.bolt_shear_check(bolt_diameter_mm=12, force_n=4000, num_bolts=1,
                         shear_planes=2, material="7075-T6")
     cm.belt_drive(pitch_mm=8.0, z_front=34, z_rear=21, target_center_dist_mm=442.0)
-    cm.stackup_check({"hub": (-74, 74), "belt": (51, 59), "stay_R": (66.5, 86.5)})
+    cm.stackup_check({"housing": (-74, 74), "pulley": (51, 59), "bracket": (66.5, 86.5)})
 
 Quick Start (CLI):
     python3 ~/.hermes/profiles/solidcraft/tools/cad_math.py beam \\
