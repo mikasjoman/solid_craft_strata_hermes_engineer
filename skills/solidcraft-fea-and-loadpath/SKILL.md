@@ -45,8 +45,14 @@ Never rely on static visual inspection alone for rotating or coupled mechanisms.
    - Repeat `--fix-box` and `--load-box` for multiple supports or load zones.
    - Start with `--mesh-size 10..15` (coarse/fast, ~5–15s) for large parts (>300 mm) and `--mesh-size 3..6` for small brackets (<150 mm).
 
-## 4. Reading `FEA_REPORT.json` & `fea_stress.png`
+## 4. Reading `FEA_REPORT.json` & Expected Output to the User
 - **`connected_components > 1` (`DISCONNECTED LOAD PATH`):** Parts are floating / unattached — add physical axles, shafts, pins, or joins before trusting any structural result.
 - **`safety_factor_p99` & `hotspot_xyz_mm`:** Require `safety_factor_p99 >= 1.5` (use `p99` to ignore single-element sharp-corner singularities, and inspect `fea_stress.png` via `vision_analyze`).
 - **If `pass: false`:** Increase wall thickness, tube OD, rib depth, or add a gusset/fillet at `hotspot_xyz_mm`, rebuild, and re-run FEA until `pass: true`.
-- **Chat visual report:** Always emit `MEDIA:/absolute/path/to/fea_stress.png` on its own line in chat alongside `max_displacement_mm`, `von_mises_mpa.p99`, `safety_factor_p99`, and `hotspot_xyz_mm`.
+
+### Expected Output (Always Deliver to the User)
+- **Max-Load Still Image:** `MEDIA:/absolute/path/to/fea_stress.png` (von Mises stress heatmap + peak hotspot)
+- **Deformation Animation:** `MEDIA:/absolute/path/to/fea_deform.gif` (animated exaggerated flex under load)
+- **Load Case & Assumptions:** Standard/source used, applied force (N), impact multiplier, material & yield strength, fixed supports
+- **Key Numbers:** `max_displacement_mm`, `von_mises_mpa.p99`, `safety_factor_p99`, `connected_components`, `hotspot_xyz_mm`
+- **Engineering Verdict:** Clear **VALID (Pass)** vs. **NEEDS STRENGTHENING / REDESIGN (Fail)** conclusion with exact structural changes required at the hotspot (if any)

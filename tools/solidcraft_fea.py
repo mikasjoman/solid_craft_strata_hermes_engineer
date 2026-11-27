@@ -223,6 +223,75 @@ def render_stress_plot(
     return out_png
 
 
+def render_deform_gif(
+    nodes: np.ndarray,
+    tets: np.ndarray,
+    u: np.ndarray,
+    vm: np.ndarray,
+    out_gif: Path,
+    title: str,
+    n_frames: int = 16,
+) -> Path:
+    """Render an animated exaggerated-deformation GIF (0% -> 100% -> 0% load)."""
+    from PIL import Image
+    import io
+
+    u3 = u.reshape(-1, 3)  # (N, 3)
+    # Element centroid displacements (average of 4 tet vertices)
+    cent_0 = nodes[:, tets].mean(axis=1)  # (3, E)
+    cent_u = u3[tets].mean(axis=0).T      # (3, E)
+
+    n = len(vm)
+    if n > 12000:
+        top_idx = np.argsort(vm)[-2000:]
+        rand_idx = np.random.default_rng(42).choice(n, size=10000, replace=False)
+        keep = np.unique(np.concatenate([top_idx, rand_idx]))
+    else:
+        keep = np.arange(n)
+
+    c0 = cent_0[:, keep]
+    cu = cent_u[:, keep]
+    v = vm[keep]
+    order = np.argsort(v)
+    vmax = max(float(np.percentile(vm, 99.5)) if len(vm) > 10 else float(np.max(vm)), 1e-6)
+
+    # Auto-exaggerate displacement to ~6% of part span so flex is visually unmistakable
+    span = max(float(np.ptp(c0[0])), float(np.ptp(c0[2])), 1.0)
+    max_d = max(float(np.linalg.norm(cu, axis=0).max()), 1e-9)
+    scale = min(max(0.06 * span / max_d, 1.0), 250.0)
+
+    c_max = c0 + cu * scale
+    xmin = min(float(c0[0].min()), float(c_max[0].min())) - 0.05 * span
+    xmax = max(float(c0[0].max()), float(c_max[0].max())) + 0.05 * span
+    zmin = min(float(c0[2].min()), float(c_max[2].min())) - 0.05 * span
+    zmax = max(float(c0[2].max()), float(c_max[2].max())) + 0.05 * span
+
+    phases = [0.5 * (1.0 - np.cos(2.0 * np.pi * i / n_frames)) for i in range(n_frames)]
+    frames = []
+    for ph in phases:
+        cf = c0 + cu * (scale * ph)
+        fig, ax = plt.subplots(figsize=(7.5, 4.6), dpi=100, facecolor="#121620")
+        ax.set_facecolor("#181e2c")
+        ax.scatter(c0[0, ::3], c0[2, ::3], color="#4a5568", s=2, alpha=0.25, label="Undeformed")
+        ax.scatter(cf[0, order], cf[2, order], c=v[order] * ph, cmap="turbo", s=4, vmin=0, vmax=vmax, alpha=0.9)
+        ax.set_xlim(xmin, xmax)
+        ax.set_ylim(zmin, zmax)
+        ax.set_aspect("equal", adjustable="box")
+        ax.set_title(f"{title}\nDeformation {scale:.1f}x exaggerated | Load {int(round(ph * 100))}%", color="#ffd966", fontsize=9)
+        ax.set_xlabel("X (mm)", color="#b0bed4")
+        ax.set_ylabel("Z (mm)", color="#b0bed4")
+        ax.tick_params(colors="#9fb0c9")
+        buf = io.BytesIO()
+        fig.savefig(buf, format="png", facecolor=fig.get_facecolor(), bbox_inches="tight")
+        plt.close(fig)
+        buf.seek(0)
+        frames.append(Image.open(buf).convert("P", palette=Image.ADAPTIVE))
+
+    out_gif.parent.mkdir(parents=True, exist_ok=True)
+    frames[0].save(out_gif, save_all=True, append_images=frames[1:], duration=90, loop=0)
+    return out_gif
+
+
 def run_fea(
     step_path: Path,
     material_name: str,
@@ -365,6 +434,12 @@ def run_fea(
     )
     plot_path = render_stress_plot(centroids, vm, hotspot, out_dir / "fea_stress.png", title)
     report["stress_plot"] = str(plot_path)
+    try:
+        gif_path = render_deform_gif(nodes, tets, u, vm, out_dir / "fea_deform.gif", title)
+        report["deform_gif"] = str(gif_path)
+    except Exception as exc:
+        report["deform_gif"] = None
+        report["deform_gif_error"] = str(exc)
     (out_dir / "FEA_REPORT.json").write_text(json.dumps(report, indent=2), encoding="utf-8")
     return report
 
