@@ -30,8 +30,11 @@ Environment="STRATA_CUDA_MALLOC_ASYNC=1"
 Environment="STRATA_SM70_GEMM_SPLIT=1"
 Environment="STRATA_BATCH_ATTN_ROWS=1"
 Environment="STRATA_BATCH_GDN_GROUPS=1"
-# Optional in Strata v0.2.22+ (engine 0.1.69+): +5.5% to +9% decode on 2-card non-NVLink splits
-# Environment="STRATA_SPLIT_LEND_RESERVE=0"
+# Lossless opt-in flags in Strata v0.2.22+ (engine 0.1.69+): +5.5-9% decode & faster 2-slot sm_70 batching (KL=0)
+Environment="STRATA_SPLIT_LEND_RESERVE=0"
+Environment="STRATA_BATCH_QSA_STREAM_OPT=1"
+Environment="STRATA_ATTN_PRE75_SLOTS=1"
+Environment="STRATA_BATCH_MTP_FUSED=1"
 
 [Install]
 WantedBy=multi-user.target

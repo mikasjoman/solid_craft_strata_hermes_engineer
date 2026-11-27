@@ -38,6 +38,12 @@
   "reasoning_close_retry": true,
   "reasoning_budget_tokens": 4096,
   "tool_call_recovery": true,
+  "env": {
+    "STRATA_SPLIT_LEND_RESERVE": "0",
+    "STRATA_BATCH_QSA_STREAM_OPT": "1",
+    "STRATA_ATTN_PRE75_SLOTS": "1",
+    "STRATA_BATCH_MTP_FUSED": "1"
+  },
   "vision": {
     "exe": "/home/<USER>/strata/engine-cuda12/strata-vision",
     "mmproj": "/home/<USER>/Strata-data/models/mmproj-Qwen3.8-Flash-Next-BF16.gguf",
